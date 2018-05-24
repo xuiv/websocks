@@ -36,7 +36,7 @@ func (server *Server) HandleWebSocket(ws *websocket.Conn) {
 	defer atomic.AddUint64(&server.Closed, 1)
 
 	host := ws.Request().Header.Get("WebSocks-Host")
-	fmt.Printf("Dial %s", host)
+	fmt.Printf("Dial %s\n", host)
 
 	conn, err := net.Dial("tcp", host)
 	if err != nil {
@@ -74,12 +74,12 @@ func (server *Server) Status(w http.ResponseWriter, r *http.Request) {
 
 func (server *Server) Listen() (err error) {
 
-	go func() {
-		for {
-			time.Sleep(time.Second)
-			fmt.Printf("%ds: opened %d, closed %d, uploaded %d bytes, downloaded %d bytes", int(time.Since(server.CreatedAt).Seconds()), server.Opened, server.Closed, server.Uploaded, server.Downloaded)
-		}
-	}()
+	//go func() {
+	//	for {
+	//		time.Sleep(time.Second)
+	//		fmt.Printf("%ds: opened %d, closed %d, uploaded %d bytes, downloaded %d bytes\n", int(time.Since(server.CreatedAt).Seconds()), server.Opened, server.Closed, server.Uploaded, server.Downloaded)
+	//	}
+	//}()
 
 	mux := http.NewServeMux()
 	mux.Handle(server.Pattern, websocket.Handler(server.HandleWebSocket))

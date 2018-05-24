@@ -51,7 +51,7 @@ func (client *Client) Listen() (err error) {
 		return err
 	}
 
-	fmt.Printf("Start to listen at %s", client.ListenAddr.String())
+	fmt.Printf("Start to listen at %s\n", client.ListenAddr.String())
 
 	defer listener.Close()
 
@@ -71,7 +71,7 @@ func (client *Client) Listen() (err error) {
 func (client *Client) handleConn(conn *net.TCPConn) (err error) {
 	defer func() {
 		if err != nil {
-			fmt.Printf("Handle connection error: %s", err.Error())
+			fmt.Printf("Handle connection error: %s\n", err.Error())
 		}
 	}()
 
@@ -89,7 +89,7 @@ func (client *Client) handleConn(conn *net.TCPConn) (err error) {
 		return
 	}
 
-	fmt.Printf("Host: %s", host)
+	fmt.Printf("Host: %s\n", host)
 
 	_, err = conn.Write([]byte{0x05, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x08, 0x43})
 	if err != nil {
