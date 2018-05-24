@@ -1,8 +1,6 @@
 # WebSocks
 
-[教程资源](https://zhuji.lu/tags/websocks)
-[中文说明](https://github.com/lzjluzijie/websocks/blob/master/README-zh.md)
-[Telegram Group](https://t.me/websocks)
+[中文说明](https://github.com/xuiv/websocks/blob/master/README-zh.md)
 
 A secure proxy based on websocket.
 
