@@ -102,8 +102,8 @@ func main() {
 	switch *mode {
 	case "cert":
 		gencert()
-		fmt.Println("run server: ./websocks -mode server -listen :8080 -path /websocks")
-		fmt.Println("run client: ./websocks -mode client -listen :1080 -server ws://youdomain.com/websocks")
+		fmt.Println("run server: websocks -mode server -listen :8080")
+		fmt.Println("run client: websocks -mode client -listen :1080 -server wss://youdomain.com")
 	case "server":
 		doserver()
 	case "client":
