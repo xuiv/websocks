@@ -19,7 +19,7 @@ var (
 	ecdsa = flag.Bool("ecdsa", true, "generate ecdsa key and cert(P-256)")
 	hosts = flag.String("hosts", "", "certificate hosts")
 
-	webpath  = flag.String("path", "", "server.com/path, like web, start with '/'")
+	webpath  = flag.String("path", "/", "server.com/path, like web, start with '/'")
 	tls      = flag.Bool("tls", true, "enable built-in tls")
 	certPath = flag.String("cert", "websocks.cer", "tls cert path")
 	keyPath  = flag.String("key", "websocks.key", "tls key path")
@@ -101,14 +101,12 @@ func main() {
 	flag.Parse()
 	switch *mode {
 	case "cert":
-		go gencert()
-	case "server":
-		go doserver()
-	case "client":
-		go doclient()
-	default:
-		fmt.Println("generate cert: ./websocks -mode cert")
-		fmt.Println("run server: ./websocks -mode server -listen :8080 -path websocks")
+		gencert()
+		fmt.Println("run server: ./websocks -mode server -listen :8080 -path /websocks")
 		fmt.Println("run client: ./websocks -mode client -listen :1080 -server ws://youdomain.com/websocks")
+	case "server":
+		doserver()
+	case "client":
+		doclient()
 	}
 }
