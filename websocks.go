@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	mode       = flag.String("mode", "cert", "server, client, cert")
+	mode       = flag.String("mode", "cert", "mode: server, client, cert")
 	listenAddr = flag.String("listen", ":1080", "local listening port")
 
 	ecdsa = flag.Bool("ecdsa", true, "generate ecdsa key and cert(P-256)")
