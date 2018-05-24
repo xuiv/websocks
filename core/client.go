@@ -31,7 +31,7 @@ func (client *Client) Listen() (err error) {
 		return errors.New("unknown scheme")
 	}
 
-	fmt.Println(client.Origin)
+	//fmt.Println(client.Origin)
 
 	config, err := websocket.NewConfig(client.URL.String(), client.Origin)
 	if err != nil {
