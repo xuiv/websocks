@@ -25,7 +25,7 @@ var (
 	keyPath  = flag.String("key", "websocks.key", "tls key path")
 	proxy    = flag.String("proxy", "", "reverse proxy url, leave blank to disable")
 
-	serverURL    = flag.String("server", "ws://localhost:8080", "server url")
+	serverURL    = flag.String("server", "wss://localhost:8080", "server url")
 	serverName   = flag.String("name", "", "fake server name for tls client hello, leave blank to disable")
 	insecureCert = flag.Bool("insecure", true, "InsecureSkipVerify: true")
 )
