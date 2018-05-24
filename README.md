@@ -25,25 +25,25 @@ To-Do: WebSocks mux
 
 #### Server
 ```
-./websocks cert
-./websocks server -l :2333 -p /password --proxy https://www.centos.org/ --tls
+./websocks -mode cert
+./websocks -mode server -listen :2333 -path /password -proxy https://www.centos.org/ -tls
 ```
 
 #### Local
 ```
-./websocks client -l :1080 -s wss://the-real-server.com:2333/password -n www.centos.com --insecure
+./websocks -mode client -listen :1080 -server wss://the-real-server.com:2333/password -name www.centos.com -insecure
 ```
 
 ### Caddy TLS
 
 #### Server
 ```
-./websocks server -l :2333 -p /password
+./websocks -mode server -listen :2333 -path /password
 ```
 
 #### Local
 ```
-./websocks client -l :1080 -s wss://server.com/password
+./websocks -mode client -listen :1080 -server wss://server.com/password
 ```
 
 #### Caddyfile

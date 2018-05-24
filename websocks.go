@@ -1,203 +1,114 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/url"
-	"os"
-	"os/exec"
-
-	"io/ioutil"
-
+	"strings"
 	"time"
 
-	"github.com/urfave/cli"
 	"github.com/xuiv/websocks/core"
 )
 
-func main() {
-	app := cli.NewApp()
-	app.Name = "WebSocks"
-	app.Version = "0.4.0"
-	app.Usage = "A secure proxy based on WebSocket."
-	app.Description = "See https://github.com/lzjluzijie/websocks"
-	app.Author = "Halulu"
-	app.Email = "lzjluzijie@gmail.com"
+var (
+	mode       = flag.String("mode", "cert", "server, client, cert")
+	listenAddr = flag.String("listen", ":1080", "local listening port")
 
-	app.Commands = []cli.Command{
-		{
-			Name:    "client",
-			Aliases: []string{"c"},
-			Usage:   "start websocks client",
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "l",
-					Value: ":10801",
-					Usage: "local listening port",
-				},
-				cli.StringFlag{
-					Name:  "s",
-					Value: "ws://localhost:23333/websocks",
-					Usage: "server url",
-				},
-				cli.StringFlag{
-					Name:  "n",
-					Value: "",
-					Usage: "fake server name for tls client hello, leave blank to disable",
-				},
-				cli.BoolFlag{
-					Name:  "insecure",
-					Usage: "InsecureSkipVerify: true",
-				},
-			},
-			Action: func(c *cli.Context) (err error) {
-				listenAddr := c.String("l")
-				serverURL := c.String("s")
-				serverName := c.String("n")
-				insecureCert := false
-				if c.Bool("insecure") {
-					insecureCert = true
-				}
+	ecdsa = flag.Bool("ecdsa", true, "generate ecdsa key and cert(P-256)")
+	hosts = flag.String("hosts", "", "certificate hosts")
 
-				u, err := url.Parse(serverURL)
-				if err != nil {
-					return
-				}
+	webpath  = flag.String("path", "", "server.com/path, like web, start with '/'")
+	tls      = flag.Bool("tls", true, "enable built-in tls")
+	certPath = flag.String("cert", "websocks.cer", "tls cert path")
+	keyPath  = flag.String("key", "websocks.key", "tls key path")
+	proxy    = flag.String("proxy", "", "reverse proxy url, leave blank to disable")
 
-				lAddr, err := net.ResolveTCPAddr("tcp", listenAddr)
-				if err != nil {
-					return
-				}
+	serverURL    = flag.String("server", "ws://localhost:8080", "server url")
+	serverName   = flag.String("name", "", "fake server name for tls client hello, leave blank to disable")
+	insecureCert = flag.Bool("insecure", true, "InsecureSkipVerify: true")
+)
 
-				local := core.Client{
-					ListenAddr:   lAddr,
-					URL:          u,
-					ServerName:   serverName,
-					InsecureCert: insecureCert,
-				}
-
-				err = local.Listen()
-				if err != nil {
-					return
-				}
-
-				return nil
-			},
-		},
-		{
-			Name:    "server",
-			Aliases: []string{"s"},
-			Usage:   "start websocks server",
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "l",
-					Value: "127.0.0.1:23333",
-					Usage: "local listening port",
-				},
-				cli.StringFlag{
-					Name:  "p",
-					Value: "/websocks",
-					Usage: "server.com/pattern, like password, start with '/'",
-				},
-				cli.BoolFlag{
-					Name:  "tls",
-					Usage: "enable built-in tls",
-				},
-				cli.StringFlag{
-					Name:  "cert",
-					Value: "websocks.cer",
-					Usage: "tls cert path",
-				},
-				cli.StringFlag{
-					Name:  "key",
-					Value: "websocks.key",
-					Usage: "tls key path",
-				},
-				cli.StringFlag{
-					Name:  "proxy",
-					Value: "",
-					Usage: "reverse proxy url, leave blank to disable",
-				},
-			},
-			Action: func(c *cli.Context) (err error) {
-				listenAddr := c.String("l")
-				pattern := c.String("p")
-				tls := c.Bool("tls")
-				certPath := c.String("cert")
-				keyPath := c.String("key")
-				proxy := c.String("proxy")
-
-				server := core.Server{
-					Pattern:    pattern,
-					ListenAddr: listenAddr,
-					TLS:        tls,
-					CertPath:   certPath,
-					KeyPath:    keyPath,
-					Proxy:      proxy,
-					CreatedAt:  time.Now(),
-				}
-
-				err = server.Listen()
-				if err != nil {
-					return
-				}
-
-				return
-			},
-		},
-		{
-			Name:    "github",
-			Aliases: []string{"github"},
-			Usage:   "open official github page",
-			Action: func(c *cli.Context) (err error) {
-				err = exec.Command("explorer", "https://github.com/lzjluzijie/websocks").Run()
-				return
-			},
-		},
-		{
-			Name:    "cert",
-			Aliases: []string{"cert"},
-			Usage:   "generate self signed key and cert(default rsa 2048)",
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name:  "ecdsa",
-					Usage: "generate ecdsa key and cert(P-256)",
-				},
-				cli.StringSliceFlag{
-					Name:  "hosts",
-					Value: nil,
-					Usage: "certificate hosts",
-				},
-			},
-			Action: func(c *cli.Context) (err error) {
-				ecdsa := c.Bool("ecdsa")
-				hosts := c.StringSlice("hosts")
-
-				var key, cert []byte
-				if ecdsa {
-					key, cert, err = core.GenP256(hosts)
-					fmt.Println("Generated ecdsa P-256 key and cert")
-				} else {
-					key, cert, err = core.GenRSA2048(hosts)
-					fmt.Println("Generated rsa 2048 key and cert")
-				}
-
-				err = ioutil.WriteFile("websocks.key", key, 0600)
-				if err != nil {
-					return
-				}
-				err = ioutil.WriteFile("websocks.cer", cert, 0600)
-				if err != nil {
-					return
-				}
-				return
-			},
-		},
+func gencert() (err error) {
+	var key, cert []byte
+	lhosts := strings.Split(*hosts, " ")
+	if *ecdsa {
+		key, cert, err = core.GenP256(lhosts)
+		fmt.Println("Generated ecdsa P-256 key and cert")
+	} else {
+		key, cert, err = core.GenRSA2048(lhosts)
+		fmt.Println("Generated rsa 2048 key and cert")
 	}
 
-	err := app.Run(os.Args)
+	err = ioutil.WriteFile("websocks.key", key, 0600)
 	if err != nil {
-		fmt.Println(err.Error())
+		return
+	}
+	err = ioutil.WriteFile("websocks.cer", cert, 0600)
+	if err != nil {
+		return
+	}
+	return
+}
+
+func doserver() (err error) {
+	server := core.Server{
+		Pattern:    *webpath,
+		ListenAddr: *listenAddr,
+		TLS:        *tls,
+		CertPath:   *certPath,
+		KeyPath:    *keyPath,
+		Proxy:      *proxy,
+		CreatedAt:  time.Now(),
 	}
 
+	err = server.Listen()
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func doclient() (err error) {
+	u, err := url.Parse(*serverURL)
+	if err != nil {
+		return
+	}
+
+	lAddr, err := net.ResolveTCPAddr("tcp", *listenAddr)
+	if err != nil {
+		return
+	}
+
+	local := core.Client{
+		ListenAddr:   lAddr,
+		URL:          u,
+		ServerName:   *serverName,
+		InsecureCert: *insecureCert,
+	}
+
+	err = local.Listen()
+	if err != nil {
+		return
+	}
+
+	return nil
+}
+
+func main() {
+	flag.Parse()
+	switch *mode {
+	case "cert":
+		go gencert()
+	case "server":
+		go doserver()
+	case "client":
+		go doclient()
+	default:
+		fmt.Println("generate cert: ./websocks -mode cert")
+		fmt.Println("run server: ./websocks -mode server -listen :8080 -path websocks")
+		fmt.Println("run client: ./websocks -mode client -listen :1080 -server ws://youdomain.com/websocks")
+	}
 }
