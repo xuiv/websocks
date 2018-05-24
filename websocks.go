@@ -1,25 +1,21 @@
 package main
 
 import (
+	"fmt"
 	"net"
 	"net/url"
 	"os"
-
 	"os/exec"
 
 	"io/ioutil"
 
 	"time"
 
-	"github.com/juju/loggo"
-	"github.com/lzjluzijie/websocks/core"
 	"github.com/urfave/cli"
+	"github.com/xuiv/websocks/core"
 )
 
 func main() {
-	logger := loggo.GetLogger("websocks")
-	logger.SetLogLevel(loggo.INFO)
-
 	app := cli.NewApp()
 	app.Name = "WebSocks"
 	app.Version = "0.4.0"
@@ -27,13 +23,6 @@ func main() {
 	app.Description = "See https://github.com/lzjluzijie/websocks"
 	app.Author = "Halulu"
 	app.Email = "lzjluzijie@gmail.com"
-
-	app.Flags = []cli.Flag{
-		cli.BoolFlag{
-			Name:  "debug",
-			Usage: "debug mode",
-		},
-	}
 
 	app.Commands = []cli.Command{
 		{
@@ -62,7 +51,6 @@ func main() {
 				},
 			},
 			Action: func(c *cli.Context) (err error) {
-				debug := c.GlobalBool("debug")
 				listenAddr := c.String("l")
 				serverURL := c.String("s")
 				serverName := c.String("n")
@@ -70,12 +58,6 @@ func main() {
 				if c.Bool("insecure") {
 					insecureCert = true
 				}
-
-				if debug {
-					logger.SetLogLevel(loggo.DEBUG)
-				}
-
-				logger.Infof("Log level %s", logger.LogLevel().String())
 
 				u, err := url.Parse(serverURL)
 				if err != nil {
@@ -88,7 +70,6 @@ func main() {
 				}
 
 				local := core.Client{
-					LogLevel:     logger.LogLevel(),
 					ListenAddr:   lAddr,
 					URL:          u,
 					ServerName:   serverName,
@@ -139,7 +120,6 @@ func main() {
 				},
 			},
 			Action: func(c *cli.Context) (err error) {
-				debug := c.GlobalBool("debug")
 				listenAddr := c.String("l")
 				pattern := c.String("p")
 				tls := c.Bool("tls")
@@ -147,14 +127,7 @@ func main() {
 				keyPath := c.String("key")
 				proxy := c.String("proxy")
 
-				if debug {
-					logger.SetLogLevel(loggo.DEBUG)
-				}
-
-				logger.Infof("Log level %s", logger.LogLevel().String())
-
 				server := core.Server{
-					LogLevel:   logger.LogLevel(),
 					Pattern:    pattern,
 					ListenAddr: listenAddr,
 					TLS:        tls,
@@ -164,7 +137,6 @@ func main() {
 					CreatedAt:  time.Now(),
 				}
 
-				logger.Infof("Listening at %s", listenAddr)
 				err = server.Listen()
 				if err != nil {
 					return
@@ -204,10 +176,10 @@ func main() {
 				var key, cert []byte
 				if ecdsa {
 					key, cert, err = core.GenP256(hosts)
-					logger.Infof("Generated ecdsa P-256 key and cert")
+					fmt.Println("Generated ecdsa P-256 key and cert")
 				} else {
 					key, cert, err = core.GenRSA2048(hosts)
-					logger.Infof("Generated rsa 2048 key and cert")
+					fmt.Println("Generated rsa 2048 key and cert")
 				}
 
 				err = ioutil.WriteFile("websocks.key", key, 0600)
@@ -225,7 +197,7 @@ func main() {
 
 	err := app.Run(os.Args)
 	if err != nil {
-		logger.Errorf(err.Error())
+		fmt.Println(err.Error())
 	}
 
 }

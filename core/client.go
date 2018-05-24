@@ -1,22 +1,17 @@
 package core
 
 import (
+	"crypto/tls"
+	"errors"
+	"fmt"
 	"io"
 	"net"
-
-	"errors"
 	"net/url"
 
-	"crypto/tls"
-
-	"github.com/juju/loggo"
 	"golang.org/x/net/websocket"
 )
 
-var logger = loggo.GetLogger("core")
-
 type Client struct {
-	LogLevel     loggo.Level
 	ListenAddr   *net.TCPAddr
 	URL          *url.URL
 	Origin       string
@@ -26,7 +21,6 @@ type Client struct {
 }
 
 func (client *Client) Listen() (err error) {
-	logger.SetLogLevel(client.LogLevel)
 
 	switch client.URL.Scheme {
 	case "ws":
@@ -37,7 +31,7 @@ func (client *Client) Listen() (err error) {
 		return errors.New("unknown scheme")
 	}
 
-	logger.Debugf(client.Origin)
+	fmt.Println(client.Origin)
 
 	config, err := websocket.NewConfig(client.URL.String(), client.Origin)
 	if err != nil {
@@ -57,14 +51,14 @@ func (client *Client) Listen() (err error) {
 		return err
 	}
 
-	logger.Infof("Start to listen at %s", client.ListenAddr.String())
+	fmt.Printf("Start to listen at %s", client.ListenAddr.String())
 
 	defer listener.Close()
 
 	for {
 		conn, err := listener.AcceptTCP()
 		if err != nil {
-			logger.Debugf(err.Error())
+			fmt.Println(err.Error())
 			continue
 		}
 
@@ -77,7 +71,7 @@ func (client *Client) Listen() (err error) {
 func (client *Client) handleConn(conn *net.TCPConn) (err error) {
 	defer func() {
 		if err != nil {
-			logger.Debugf("Handle connection error: %s", err.Error())
+			fmt.Printf("Handle connection error: %s", err.Error())
 		}
 	}()
 
@@ -95,7 +89,7 @@ func (client *Client) handleConn(conn *net.TCPConn) (err error) {
 		return
 	}
 
-	logger.Debugf("Host: %s", host)
+	fmt.Printf("Host: %s", host)
 
 	_, err = conn.Write([]byte{0x05, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x08, 0x43})
 	if err != nil {
@@ -117,7 +111,7 @@ func (client *Client) handleConn(conn *net.TCPConn) (err error) {
 	go func() {
 		_, err = io.Copy(ws, conn)
 		if err != nil {
-			logger.Debugf(err.Error())
+			fmt.Println(err.Error())
 			return
 		}
 		return

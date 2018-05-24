@@ -1,25 +1,19 @@
 package core
 
 import (
+	"fmt"
 	"io"
 	"net"
 	"net/http"
-
-	"time"
-
 	"net/http/httputil"
 	"net/url"
-
 	"sync/atomic"
+	"time"
 
-	"fmt"
-
-	"github.com/juju/loggo"
 	"golang.org/x/net/websocket"
 )
 
 type Server struct {
-	LogLevel   loggo.Level
 	Pattern    string
 	ListenAddr string
 	TLS        bool
@@ -42,12 +36,12 @@ func (server *Server) HandleWebSocket(ws *websocket.Conn) {
 	defer atomic.AddUint64(&server.Closed, 1)
 
 	host := ws.Request().Header.Get("WebSocks-Host")
-	logger.Debugf("Dial %s", host)
+	fmt.Printf("Dial %s", host)
 
 	conn, err := net.Dial("tcp", host)
 	if err != nil {
 		if err != nil {
-			logger.Debugf(err.Error())
+			fmt.Println(err.Error())
 		}
 		return
 	}
@@ -58,7 +52,7 @@ func (server *Server) HandleWebSocket(ws *websocket.Conn) {
 		atomic.AddUint64(&server.Downloaded, uint64(downloaded))
 		if err != nil {
 			if err != nil {
-				logger.Debugf(err.Error())
+				fmt.Println(err.Error())
 			}
 			return
 		}
@@ -68,7 +62,7 @@ func (server *Server) HandleWebSocket(ws *websocket.Conn) {
 	atomic.AddUint64(&server.Uploaded, uint64(uploaded))
 	if err != nil {
 		if err != nil {
-			logger.Debugf(err.Error())
+			fmt.Println(err.Error())
 		}
 		return
 	}
@@ -79,12 +73,11 @@ func (server *Server) Status(w http.ResponseWriter, r *http.Request) {
 }
 
 func (server *Server) Listen() (err error) {
-	logger.SetLogLevel(server.LogLevel)
 
 	go func() {
 		for {
 			time.Sleep(time.Second)
-			logger.Debugf("%ds: opened %d, closed %d, uploaded %d bytes, downloaded %d bytes", int(time.Since(server.CreatedAt).Seconds()), server.Opened, server.Closed, server.Uploaded, server.Downloaded)
+			fmt.Printf("%ds: opened %d, closed %d, uploaded %d bytes, downloaded %d bytes", int(time.Since(server.CreatedAt).Seconds()), server.Opened, server.Closed, server.Uploaded, server.Downloaded)
 		}
 	}()
 
